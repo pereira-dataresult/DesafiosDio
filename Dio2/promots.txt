@@ -1,0 +1,6 @@
+crie um titulo de um ebook sobre o tema de componetização com angular, o ebook é do nicho de framework angular e o subnivel é de componentes,
+o titulo deve ser epico e curto, e tenha uma tematica mais nerd.
+
+
+quero um texto mais explicativo sobre cada capitulo para ebook
+

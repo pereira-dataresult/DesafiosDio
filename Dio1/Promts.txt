@@ -1,0 +1,22 @@
+Promts
+
+
+01 - Definir o assunto
+
+Desenvolvimento de Componentes no Angular
+
+
+02 - Titulo chamativo para o assunto
+
+crie 10 headlines para nomes de artigos sobre o assunto Desenvolvimento de Componentes no Angular
+
+03 - Imagem de capa chamativa
+lexica.art - site para gerar imagens
+usar o ideias de design do powerpoint
+
+lexica.art e o powerpoint
+preciso de uma imagem para colocar como capa de um artigo sobre o seguinte tema Dominando a Componentização: Uma Jornada Profunda no Desenvolvimento de Componentes no Angular
+
+04 - blocos do artigo
+
+agora vamos criar o artigo, quero um artigo curto, com os seguintes topicos, introdução, conteudo e conclusao
