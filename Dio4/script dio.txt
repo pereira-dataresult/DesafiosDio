@@ -1,0 +1,127 @@
+-- criação de um banco de dados para um e-commerce de moda
+
+create database ecommerce2;
+
+use ecommerce2;
+
+-- criar tabela de loja
+create table loja (
+	lojaid varchar(45) primary key,
+    Nfantasia varchar(45), 
+    endereco varchar(45), 
+    cidade varchar(45),
+    estado varchar(45), 
+    tipo enum('Lojas Proprias', 'Franquias', 'Multimarcas', 'Atacado', 'Lojas Internacionais') not null,
+    constraint unique_lojaid unique(lojaid)
+);
+
+-- criar tabela de vendedora
+create table vendedora (
+	idvendedora int auto_increment primary key,
+    Nvendedora varchar(45),
+    cpf char(11),
+    codigovendas varchar(45),
+    email varchar(45),
+    lojaid varchar(45),
+    constraint unique_vendedora unique (cpf),
+    constraint fk_lojaid foreign key (lojaid) references loja (lojaid)
+);
+
+-- criar tabela de cliente
+create table customer (
+	id int auto_increment primary key,
+    nome varchar(45),
+    documento varchar(45),
+    tipo_documento enum('CPF', 'RG', 'Passaporte'),
+    endereco varchar(45),
+    cidade varchar(45),
+    estado varchar(45),
+    data_cadastro varchar(45),
+    constraint unique_customer unique (documento)
+);
+
+-- criar tabela de Pedido
+create table orders (
+	orderId varchar(45) primary key,
+    customerid int,
+    origem varchar(45),
+    datapedido  varchar(45),
+    statuspedido enum('Cancelado','Confirmado','Em Separação', 'Aguardando Pagamento', 'Faturado'),
+    valorpedido float,
+    valorfrete float,
+    vendedoraid varchar(45),
+    dataFaturamento varchar(45),
+    notafiscal varchar(45),
+    constraint unique_order unique (orderId),
+    constraint fk_customerid foreign key (customerid) references customer (id)
+);
+
+-- criar tabela de Pedido Item
+create table orderitem (
+	id int auto_increment primary key,
+    orderid varchar(45),
+    statusitem varchar(45),
+    sku varchar(45),
+    quantidade int,
+    valoritem float,
+    valortotal float,
+    constraint fk_orderid  foreign key (orderid) references orders (orderid)
+);
+
+-- criar tabela de produtos
+create table produtos (
+	sku int primary key,
+    descrição varchar(45),
+    tipo varchar(45),
+    grupo varchar(45),
+    categoria varchar(45),
+    colecao varchar(45),
+    cor varchar(45),
+    tamanho varchar(45),
+    imagem varchar(100)
+);
+
+-- criar tabela de Estoque
+create table estoque (
+	id int auto_increment primary key,
+    armazem varchar(45) not null,
+    sku int,
+    quantidade int
+);
+
+
+-- criar tabela de Pagamentos
+create table payment (
+	id int auto_increment primary key,
+    orderid varchar(45),
+    sistemname varchar(45),
+    groupe varchar(45),
+    nparcelas int default 1,
+    valor float,   
+    constraint fk_orderid_payment  foreign key (orderid) references orders (orderid)
+);
+
+
+-- 
+desc loja;
+desc vendedora;
+desc customer;
+desc orders;
+desc orderitem;
+desc produtos;
+desc estoque;
+desc payment;
+
+
+
+-- queryes
+select * from orders a
+inner join orderitem b On a.orderid = b.orderid
+inner join produtos c ON c.sku = b.sku
+where datapedido between '20230101' and '20231231'
+and a.statuspedido = 'faturado';
+
+
+select * from produtos c
+inner join estoque  d on c.sku = d.sku
+ where armazem = 'principal';
