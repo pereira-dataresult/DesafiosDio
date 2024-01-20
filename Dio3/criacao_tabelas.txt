@@ -1,0 +1,99 @@
+-- criação dp banco de daods para o cenario de Ecommerce
+
+create database ecommerce;
+
+use ecommerce;
+
+-- criar tabela cliente
+create table client (
+	idclient int auto_increment primary key,
+    Fname varchar(10),
+    Minit char(3),
+    Lname varchar(20),
+    CPF char(11) not null,
+    Address varchar(100),
+    constraint unique_cpf_client unique(CPF)
+);
+
+
+-- criar tabela de produtos
+create table product (
+	idProduct int auto_increment primary key,
+    Pname varchar(10) not null,
+    classification_kids bool,
+    grupo varchar(10),
+    category varchar(10),
+    Avaliação float default 0,
+	size varchar(10)    
+);
+
+
+-- criar tabela pedido
+create table orders (
+	idOrders int auto_increment primary key,
+    idOrderclient int,
+    orderStatus enum('Cancelado','Confirmado','Em processamento'),
+    orderDescription varchar(100),
+    sendValue float default 0,
+    constraint fk_order_client foreign key (idOrderclient) references client(idclient)
+);
+
+-- craiart tabela Pagamento
+create table payments (
+	idclient int,
+    idpayment int,
+    typePayment enum ('Boleto', 'Credito', 'Debito', 'Pix'),
+    limitAvaliable float,
+    primary key(idclient, idpayment)
+);
+
+
+-- craiart tabela Estoque
+create table productStorange (
+	idproductStorange int auto_increment primary key,
+    storangeLocation varchar(100),
+    quantidade int
+);
+
+
+
+-- craiart tabela Fornecedor
+create table fornecedor (
+	idfornecedor int primary key,
+    Razao_social varchar(10) not null,
+    CNPJ char(14),
+    contato char(11) not null,
+    constraint unique_supplier unique (CNPJ)
+);
+
+
+-- criar tabela Vendedor
+create table vendedor (
+	idvendedor int auto_increment primary key,
+    RazaoSicial varchar(10) not null,
+    Nlocal varchar(100),
+    NomeFantasia varchar(100),
+    CNPJ_vendedor char(14),
+    contato char(11) not null,
+	constraint unique_vendedor unique (CNPJ_vendedor)
+);
+
+-- Tabela ProdutoSeller
+create table productseller (
+	idPseller int,
+    idProduct int,
+    quantidade int not null,
+    primary key (idPseller,  idProduct),
+    constraint fk_product_seller foreign key (idPseller) references fornecedor (idfornecedor),
+    constraint fk_product_product foreign key (idProduct) references product (idProduct)    
+);
+
+
+desc client;
+desc product;
+desc orders;
+desc payments;
+desc productStorange;
+desc fornecedor;
+desc vendedor;
+desc productseller;
