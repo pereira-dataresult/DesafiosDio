@@ -1,0 +1,171 @@
+Script de Criação Tabela Customer
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Customer](
+	[Id] [varchar](100) NOT NULL,
+	[Nome] [varchar](100) NOT NULL,
+	[UltimoNome] [varchar](100) NOT NULL,
+	[Documento] [varchar](100) NULL,
+	[Telefone] [varchar](100) NULL,
+	[TipoEndereço] [varchar](100) NULL,
+	[Cep] [varchar](100) NULL,
+	[TipoDocumento] [varchar](100) NOT NULL,
+	[Cidade] [varchar](100) NULL,
+	[Estado] [varchar](100) NULL,
+	[Pais] [varchar](100) NULL,
+	[Rua] [varchar](100) NULL,
+	[Numero] [varchar](100) NULL,
+	[Bairro] [varchar](100) NULL,
+	[DataCriacao] [varchar](100) NULL
+) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+ALTER TABLE [dbo].[Customer] ADD  CONSTRAINT [PK_Customer] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+SET ANSI_PADDING ON
+GO
+CREATE NONCLUSTERED INDEX [IndexCustomerName] ON [dbo].[Customer]
+(
+	[Nome] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, DROP_EXISTING = OFF, ONLINE = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+GO
+
+---------------------------------------------------------------------------------------------------------------------
+
+Script Procedure para Gerar a Tabela:
+
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+
+CREATE procedure [dbo].[InsertCustomer] (@id UNIQUEIDENTIFIER)
+as
+
+DROP TABLE IF EXISTS #Customer;
+
+select 
+    Id,
+    Nome,
+    UltimoNome,
+    Documento,
+    Telefone,
+    TipoEndereço,
+    Cep,
+    TipoDocumento,
+    Cidade,
+    Estado,
+    Pais,
+    Rua,
+    Numero,
+    Bairro,
+    cast(replace(left(DataCriacao,19),'T',' ') as datetime)  DataCriacao
+into #Customer
+from openjson(
+    (select [Data] from OrderProcessControl
+where Id like @id )
+)
+  WITH (
+    Id varchar(100) 'strict $.clientProfileData.userProfileId',
+    Nome varchar(100) '$.clientProfileData.firstName',
+    UltimoNome varchar(100) '$.clientProfileData.lastName',
+    Documento varchar(100) '$.clientProfileData.document',
+    Telefone varchar(100) '$.clientProfileData.phone',
+    TipoEndereço varchar(100) '$.shippingData.address.addressType',
+    Cep varchar(100) '$.shippingData.address.postalCode',
+    TipoDocumento varchar(100) '$.clientProfileData.documentType',
+    Cidade varchar(100) '$.shippingData.address.city',
+    Estado varchar(100) '$.shippingData.address.state',
+    Pais varchar(100) '$.shippingData.address.country',
+    Rua varchar(100) '$.shippingData.address.street',
+    Numero varchar(100)'$.shippingData.address.number',
+    Bairro varchar(100)'$.shippingData.address.neighborhood',
+    DataCriacao varchar(100) '$.creationDate'
+  );
+
+declare @success bit;
+begin try
+
+update #Customer set Id = Documento where Id is null;
+
+merge Customer  as destination
+using #Customer as source
+on destination.Id like source.Id
+when matched then
+update set Nome = source.Nome,
+           UltimoNome = source.UltimoNome,
+           Documento = source.Documento,
+           Telefone = source.Telefone,
+           TipoEndereço = source.TipoEndereço,
+           Cep = source.Cep,
+           TipoDocumento = source.TipoDocumento,
+           Cidade = source.Cidade,
+           Estado = source.Estado,
+           Pais = source.Pais,
+           Rua = source.Rua,
+           Numero = source.Numero,
+           Bairro = source.Bairro
+when not matched then
+insert (Id, Nome, UltimoNome, Documento, Telefone, TipoEndereço, Cep, TipoDocumento, Cidade, Estado, Pais, Rua, Numero, Bairro, DataCriacao)
+values(source.Id, source.Nome, source.UltimoNome, source.Documento, source.Telefone, 
+       source.TipoEndereço, source.Cep, source.TipoDocumento, source.Cidade, 
+       source.Estado, source.Pais, source.Rua, source.Numero, source.Bairro, source.DataCriacao);
+
+set @success = 'True';
+end try
+
+begin catch
+set @success = 'False';
+declare @message varchar(max) = (SELECT ERROR_MESSAGE() AS ErrorMessage);  
+exec OrderProcessControlFailed @id, @message;
+end catch
+
+update  OrderProcessControl set Customer = @success where Id = @id;
+select @success success;
+GO
+
+
+
+-------------------------------------------------------------------------------------------------------
+
+Criação de Indices
+
+CREATE [ UNIQUE ] [ CLUSTERED ] INDEX index_cep
+    ON( Cep [ ASC ] )
+    [ INCLUDE ( Cep ) ]
+    [ WITH ( [ ,...n ] ) ]
+    [ ON { partition_scheme_name ( Cep )
+         | filegroup_name
+         | default
+         }
+    ]
+[ ; ]
+
+::=
+{
+    [ ecom. [ Customer ] . | customer.Cep ]
+        table_or_view_name
+}
+
+::=
+{
+    PAD_INDEX  = { ON }
+  | FILLFACTOR = fillfactor
+  | SORT_IN_TEMPDB = { ON }
+  | IGNORE_DUP_KEY = { ON }
+  | STATISTICS_NORECOMPUTE = { ON }
+  | DROP_EXISTING = { ON }
+  | ONLINE = { ON }
+  | ALLOW_ROW_LOCKS = { ON }
+  | ALLOW_PAGE_LOCKS = { ON }
+  | MAXDOP = max_degree_of_parallelism
+}
